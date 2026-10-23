@@ -1,0 +1,12 @@
+{
+  "name": "platform-engineering-kit",
+  "displayName": "Platform Engineering Kit",
+  "version": "1.0.0",
+  "description": "Bundled incident triage workflows, release readiness gates, SRE rules, and service registry MCP tools.",
+  "logo": "assets/logo.svg",
+  "suggestedPrompts": [
+    "Run incident triage diagnostics and classify severity",
+    "Evaluate release readiness against our production gate criteria",
+    "Query the service registry MCP server for active services"
+  ]
+}

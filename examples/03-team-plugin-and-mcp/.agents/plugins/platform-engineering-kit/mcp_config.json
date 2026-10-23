@@ -1,0 +1,13 @@
+{
+  "mcpServers": {
+    "platform-engineering-kit-registry": {
+      "command": "python3",
+      "args": [
+        "../../../tools/local-mcp-server/server.py"
+      ],
+      "env": {
+        "REGISTRY_ENV": "staging"
+      }
+    }
+  }
+}

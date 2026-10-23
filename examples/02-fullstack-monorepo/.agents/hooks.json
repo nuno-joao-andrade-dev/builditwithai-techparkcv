@@ -1,0 +1,30 @@
+{
+  "command-safety-guard": {
+    "PreToolUse": [
+      {
+        "matcher": "run_command",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "./scripts/command-guard.sh",
+            "timeout": 5
+          }
+        ]
+      }
+    ]
+  },
+  "post-edit-syntax-check": {
+    "PostToolUse": [
+      {
+        "matcher": "edit_file|write_file",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "./scripts/post-edit-check.sh",
+            "timeout": 10
+          }
+        ]
+      }
+    ]
+  }
+}

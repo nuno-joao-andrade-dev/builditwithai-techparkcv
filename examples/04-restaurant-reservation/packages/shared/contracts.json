@@ -1,0 +1,64 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "BistroNode Restaurant Table Reservation Contracts",
+  "timeSlots": [
+    "17:30",
+    "18:00",
+    "18:30",
+    "19:00",
+    "19:30",
+    "20:00",
+    "20:30",
+    "21:00"
+  ],
+  "zones": [
+    "window",
+    "main-dining",
+    "patio",
+    "private-room"
+  ],
+  "reservationStatuses": [
+    "confirmed",
+    "seated",
+    "completed",
+    "cancelled"
+  ],
+  "definitions": {
+    "Table": {
+      "type": "object",
+      "required": ["id", "name", "capacity", "zone"],
+      "properties": {
+        "id": { "type": "string", "examples": ["T1"] },
+        "name": { "type": "string", "examples": ["Table 1 (Window Two-Top)"] },
+        "capacity": { "type": "integer", "minimum": 1, "maximum": 12 },
+        "zone": { "type": "string", "enum": ["window", "main-dining", "patio", "private-room"] }
+      }
+    },
+    "Reservation": {
+      "type": "object",
+      "required": [
+        "id",
+        "tableId",
+        "guestName",
+        "guestContact",
+        "date",
+        "timeSlot",
+        "partySize",
+        "status",
+        "createdAt"
+      ],
+      "properties": {
+        "id": { "type": "string", "examples": ["res_1001"] },
+        "tableId": { "type": "string", "examples": ["T3"] },
+        "guestName": { "type": "string", "minLength": 2 },
+        "guestContact": { "type": "string", "minLength": 5 },
+        "date": { "type": "string", "pattern": "^\\d{4}-\\d{2}-\\d{2}$" },
+        "timeSlot": { "type": "string", "enum": ["17:30", "18:00", "18:30", "19:00", "19:30", "20:00", "20:30", "21:00"] },
+        "partySize": { "type": "integer", "minimum": 1, "maximum": 12 },
+        "specialRequests": { "type": "string" },
+        "status": { "type": "string", "enum": ["confirmed", "seated", "completed", "cancelled"] },
+        "createdAt": { "type": "string", "format": "date-time" }
+      }
+    }
+  }
+}

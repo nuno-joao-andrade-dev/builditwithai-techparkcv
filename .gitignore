@@ -1,0 +1,149 @@
+# =============================================================================
+# Node.js / JavaScript / TypeScript / React / Vite
+# (e.g., examples/02-fullstack-monorepo, examples/04-restaurant-reservation)
+# =============================================================================
+node_modules/
+.pnp
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/sdks
+!.yarn/versions
+
+# Build & bundler outputs
+dist/
+dist-ssr/
+build/
+out/
+.vite/
+.next/
+.nuxt/
+.turbo/
+.parcel-cache/
+*.tsbuildinfo
+
+# Package manager & bundler logs / caches
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+.npm
+.eslintcache
+.stylelintcache
+
+# =============================================================================
+# Python
+# (e.g., examples/01-starter-template, examples/02-fullstack-monorepo,
+#        examples/03-team-plugin-and-mcp)
+# =============================================================================
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+
+# Packaging, distribution & egg metadata
+.Python
+develop-eggs/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Test, linter & type-checker caches
+.pytest_cache/
+.mypy_cache/
+.dmypy.json
+dmypy.json
+.ruff_cache/
+.pytype/
+.pyre/
+.hypothesis/
+.tox/
+.nox/
+.coverage
+.coverage.*
+coverage.xml
+htmlcov/
+*.cover
+*.py,cover
+.nyc_output/
+coverage/
+
+# =============================================================================
+# Databases & Local Storage
+# =============================================================================
+*.db
+*.sqlite
+*.sqlite3
+*.db-journal
+*.db-shm
+*.db-wal
+
+# =============================================================================
+# Environment Variables & Secrets
+# =============================================================================
+.env
+.env.*
+!.env.example
+!.env.template
+*.pem
+*.key
+
+# =============================================================================
+# Logs, Runtime & Temporary Files
+# =============================================================================
+logs/
+*.log
+*.pid
+*.seed
+*.pid.lock
+tmp/
+temp/
+
+# =============================================================================
+# OS, Editor & IDE Files
+# =============================================================================
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+*~
+
+# Editors / IDEs
+.idea/
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+*.swp
+*.swo
+*.swn
+*.suo
+*.ntvs*
+*.njsproj
+*.sln

@@ -1,0 +1,30 @@
+{
+  "command-safety-guard": {
+    "PreToolUse": [
+      {
+        "matcher": "run_command",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "./scripts/pre-tool-safety.sh",
+            "timeout": 5
+          }
+        ]
+      }
+    ]
+  },
+  "js-syntax-verifier": {
+    "PostToolUse": [
+      {
+        "matcher": "edit_file|write_file",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "./scripts/post-edit-syntax-check.sh",
+            "timeout": 10
+          }
+        ]
+      }
+    ]
+  }
+}

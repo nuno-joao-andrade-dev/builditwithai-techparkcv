@@ -1,0 +1,1570 @@
+<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Desenvolvimento AI-First com Antigravity CLI (agy) — GDG Lisbon &amp; GDE</title>
+  <style>
+    :root {
+      /* Official Google / GDG / GDE Palette (Light / White Theme) */
+      --g-blue: #4285F4;
+      --g-blue-dark: #1a73e8;
+      --g-blue-bg: #e8f0fe;
+      --g-red: #EA4335;
+      --g-red-dark: #d93025;
+      --g-red-bg: #fce8e6;
+      --g-yellow: #FBBC04;
+      --g-yellow-dark: #b06000;
+      --g-yellow-bg: #fef7e0;
+      --g-green: #34A853;
+      --g-green-dark: #1e8e3e;
+      --g-green-bg: #e6f4ea;
+
+      --bg-viewport: #f1f3f4;
+      --bg-slide: #ffffff;
+      --bg-card: #f8f9fa;
+      --bg-code: #f8f9fa;
+      --border: #dadce0;
+      --border-subtle: #e8eaed;
+      --text-main: #202124;
+      --text-body: #3c4043;
+      --text-muted: #5f6368;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Google Sans', 'Roboto', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Oxygen, Ubuntu, sans-serif;
+      background-color: var(--bg-viewport);
+      background-image:
+        radial-gradient(circle at 8% 12%, rgba(66, 133, 244, 0.07) 0%, transparent 28%),
+        radial-gradient(circle at 92% 88%, rgba(52, 168, 83, 0.07) 0%, transparent 28%),
+        radial-gradient(circle at 90% 10%, rgba(251, 188, 4, 0.06) 0%, transparent 22%);
+      color: var(--text-main);
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Iconic 4-color Google / GDG Top Bar */
+    .google-color-bar {
+      height: 5px;
+      width: 100%;
+      background: linear-gradient(
+        90deg,
+        var(--g-blue) 0% 25%,
+        var(--g-red) 25% 50%,
+        var(--g-yellow) 50% 75%,
+        var(--g-green) 75% 100%
+      );
+      z-index: 30;
+      flex-shrink: 0;
+    }
+
+    /* Top Header */
+    header {
+      height: 52px;
+      padding: 0 32px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 0.86rem;
+      color: var(--text-muted);
+      background: #ffffff;
+      z-index: 20;
+      flex-shrink: 0;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-weight: 600;
+      color: var(--text-main);
+    }
+
+    .gdg-logo {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding-right: 10px;
+      border-right: 1px solid var(--border);
+    }
+
+    .gdg-logo svg {
+      width: 28px;
+      height: 20px;
+      flex-shrink: 0;
+    }
+
+    .gde-badge {
+      background: var(--g-blue-bg);
+      color: var(--g-blue-dark);
+      border: 1px solid rgba(26, 115, 232, 0.25);
+      font-weight: 700;
+      padding: 3px 9px;
+      border-radius: 999px;
+      font-size: 0.75rem;
+      letter-spacing: 0.02em;
+    }
+
+    .controls-hint {
+      display: flex;
+      gap: 14px;
+      align-items: center;
+    }
+
+    .kbd {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      padding: 2px 7px;
+      border-radius: 4px;
+      font-family: 'Roboto Mono', monospace;
+      font-size: 0.75rem;
+      color: var(--text-body);
+      font-weight: 600;
+      box-shadow: 0 1px 1px rgba(0, 0, 0, 0.04);
+    }
+
+    /* Slide Viewport */
+    main {
+      flex: 1;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 22px 44px;
+      overflow: hidden;
+    }
+
+    .slide {
+      display: none;
+      position: relative;
+      width: 100%;
+      max-width: 1240px;
+      height: 100%;
+      max-height: 760px;
+      background: var(--bg-slide);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 40px 54px;
+      box-shadow: 0 10px 30px -5px rgba(32, 33, 36, 0.08), 0 2px 6px rgba(32, 33, 36, 0.04);
+      overflow-y: auto;
+      overflow-x: hidden;
+      animation: fadeIn 0.2s ease-out;
+    }
+
+    /* Subtle 4-color top accent inside each slide card */
+    .slide::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: linear-gradient(
+        90deg,
+        var(--g-blue) 0% 25%,
+        var(--g-red) 25% 50%,
+        var(--g-yellow) 50% 75%,
+        var(--g-green) 75% 100%
+      );
+      border-radius: 16px 16px 0 0;
+    }
+
+    .slide.active {
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(5px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    body.no-anim .slide {
+      animation: none !important;
+      opacity: 1 !important;
+      transform: none !important;
+    }
+
+    .slide-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      align-self: flex-start;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      font-weight: 700;
+      color: var(--g-blue-dark);
+      background: var(--g-blue-bg);
+      border: 1px solid rgba(26, 115, 232, 0.2);
+      padding: 4px 12px;
+      border-radius: 999px;
+      margin-bottom: 12px;
+    }
+
+    h1 {
+      font-size: 2.65rem;
+      line-height: 1.16;
+      margin-bottom: 14px;
+      color: var(--text-main);
+      font-weight: 800;
+      letter-spacing: -0.02em;
+    }
+
+    h1 .accent-blue {
+      color: var(--g-blue-dark);
+    }
+
+    h2 {
+      font-size: 1.82rem;
+      color: var(--text-main);
+      margin-bottom: 16px;
+      line-height: 1.25;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+    }
+
+    h3 {
+      font-size: 1.1rem;
+      color: var(--g-blue-dark);
+      margin-bottom: 8px;
+      font-weight: 700;
+    }
+
+    p {
+      font-size: 1rem;
+      line-height: 1.55;
+      color: var(--text-body);
+      margin-bottom: 12px;
+    }
+
+    ul, ol {
+      padding-left: 22px;
+      margin-bottom: 12px;
+    }
+
+    li {
+      font-size: 0.96rem;
+      line-height: 1.55;
+      color: var(--text-body);
+      margin-bottom: 7px;
+    }
+
+    li strong {
+      color: var(--text-main);
+    }
+
+    code {
+      font-family: 'Roboto Mono', 'JetBrains Mono', 'Fira Code', Consolas, monospace;
+      background: #f1f3f4;
+      color: #c5221f;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 0.88em;
+      font-weight: 500;
+    }
+
+    pre {
+      background: var(--bg-code);
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--g-blue);
+      border-radius: 10px;
+      padding: 13px 16px;
+      overflow-x: auto;
+      font-family: 'Roboto Mono', 'JetBrains Mono', 'Fira Code', Consolas, monospace;
+      font-size: 0.83rem;
+      line-height: 1.48;
+      color: var(--text-main);
+      margin-bottom: 12px;
+    }
+
+    pre code {
+      background: transparent;
+      padding: 0;
+      color: inherit;
+      font-size: inherit;
+      font-weight: 400;
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      gap: 20px;
+      margin-top: 6px;
+    }
+
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 16px;
+      margin-top: 8px;
+    }
+
+    .grid-2 > *,
+    .grid-3 > * {
+      min-width: 0;
+    }
+
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px 18px;
+    }
+
+    .card.highlight {
+      border-color: rgba(66, 133, 244, 0.45);
+      background: #ffffff;
+      box-shadow: 0 4px 12px rgba(66, 133, 244, 0.08);
+    }
+
+    .card.g-blue-top { border-top: 4px solid var(--g-blue); background: #ffffff; }
+    .card.g-red-top { border-top: 4px solid var(--g-red); background: #ffffff; }
+    .card.g-yellow-top { border-top: 4px solid var(--g-yellow); background: #ffffff; }
+    .card.g-green-top { border-top: 4px solid var(--g-green); background: #ffffff; }
+
+    .callout {
+      margin-top: auto;
+      padding: 12px 16px;
+      border-left: 4px solid var(--g-blue);
+      background: var(--g-blue-bg);
+      border-radius: 0 8px 8px 0;
+      font-size: 0.93rem;
+      color: var(--text-main);
+    }
+
+    .callout.warn {
+      border-left-color: var(--g-yellow);
+      background: var(--g-yellow-bg);
+    }
+
+    .callout.success {
+      border-left-color: var(--g-green);
+      background: var(--g-green-bg);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 6px;
+      margin-bottom: 12px;
+      font-size: 0.88rem;
+      background: #ffffff;
+    }
+
+    th, td {
+      border: 1px solid var(--border);
+      padding: 9px 12px;
+      text-align: left;
+      vertical-align: top;
+    }
+
+    th {
+      background: var(--g-blue-bg);
+      color: var(--g-blue-dark);
+      font-weight: 700;
+    }
+
+    tr:nth-child(even) td {
+      background: var(--bg-card);
+    }
+
+    .pill {
+      display: inline-block;
+      padding: 3px 9px;
+      border-radius: 99px;
+      font-size: 0.74rem;
+      font-weight: 700;
+    }
+    .pill-blue { background: var(--g-blue-bg); color: var(--g-blue-dark); }
+    .pill-green { background: var(--g-green-bg); color: var(--g-green-dark); }
+    .pill-amber { background: var(--g-yellow-bg); color: var(--g-yellow-dark); }
+    .pill-red { background: var(--g-red-bg); color: var(--g-red-dark); }
+    .pill-purple { background: #f3e8fd; color: #7627bb; }
+
+    /* Cover & Speaker Bio Specific Elements */
+    .hero-badges {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 14px;
+      border-radius: 999px;
+      font-size: 0.82rem;
+      font-weight: 700;
+      border: 1px solid var(--border);
+      background: #ffffff;
+      color: var(--text-main);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+
+    .dot {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+    .dot-blue { background: var(--g-blue); }
+    .dot-red { background: var(--g-red); }
+    .dot-yellow { background: var(--g-yellow); }
+    .dot-green { background: var(--g-green); }
+
+    .speaker-banner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 18px 24px;
+      margin-top: auto;
+    }
+
+    .speaker-avatar {
+      width: 54px;
+      height: 54px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--g-blue), var(--g-green));
+      color: #ffffff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 1.2rem;
+      flex-shrink: 0;
+      box-shadow: 0 3px 8px rgba(66, 133, 244, 0.25);
+    }
+
+    .profile-header {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 14px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+
+    /* Speaker Notes Drawer */
+    .notes-panel {
+      display: none;
+      background: #ffffff;
+      border-top: 2px solid var(--g-blue);
+      padding: 12px 48px;
+      font-size: 0.9rem;
+      color: var(--text-body);
+      max-height: 130px;
+      overflow-y: auto;
+      box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.05);
+    }
+    .notes-panel.visible {
+      display: block;
+    }
+    .notes-label {
+      color: var(--g-blue-dark);
+      font-weight: 700;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      margin-right: 8px;
+    }
+
+    /* Footer & Progress */
+    footer {
+      height: 46px;
+      padding: 0 32px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-top: 1px solid var(--border);
+      background: #ffffff;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      flex-shrink: 0;
+    }
+
+    .nav-btns {
+      display: flex;
+      gap: 8px;
+    }
+
+    button {
+      background: #ffffff;
+      color: var(--text-body);
+      border: 1px solid var(--border);
+      padding: 5px 13px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.82rem;
+      font-weight: 600;
+      transition: all 0.15s;
+    }
+
+    button:hover {
+      border-color: var(--g-blue);
+      color: var(--g-blue-dark);
+      background: var(--g-blue-bg);
+    }
+
+    .progress-track {
+      position: fixed;
+      bottom: 46px;
+      left: 0;
+      width: 100%;
+      height: 4px;
+      background: var(--border-subtle);
+      z-index: 30;
+    }
+
+    .progress-bar {
+      height: 100%;
+      background: linear-gradient(
+        90deg,
+        var(--g-blue),
+        var(--g-red),
+        var(--g-yellow),
+        var(--g-green)
+      );
+      width: 0%;
+      transition: width 0.2s ease;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="google-color-bar"></div>
+
+  <header>
+    <div class="brand">
+      <span class="gdg-logo" title="Google Developer Group Lisbon">
+        <!-- Iconic GDG 4-Color Bracket Logo -->
+        <svg viewBox="0 0 64 44" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <path d="M24 6L8 22L24 38" stroke="#4285F4" stroke-width="6.5" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M24 6L15 15" stroke="#EA4335" stroke-width="6.5" stroke-linecap="round"/>
+          <path d="M40 6L56 22L40 38" stroke="#34A853" stroke-width="6.5" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M40 38L49 29" stroke="#FBBC04" stroke-width="6.5" stroke-linecap="round"/>
+        </svg>
+        <span>GDG Lisbon</span>
+      </span>
+      <span class="gde-badge">Google Developer Experts</span>
+      <span style="color: var(--text-muted); font-weight: 500;">Desenvolvimento AI-First &amp; Antigravity CLI (<code>agy</code>)</span>
+    </div>
+    <div class="controls-hint">
+      <span><span class="kbd">←</span> <span class="kbd">→</span> Navegar</span>
+      <span><span class="kbd">N</span> Notas</span>
+      <span><span class="kbd">F</span> Ecrã Inteiro</span>
+    </div>
+  </header>
+
+  <main>
+    <!-- SLIDE 1: TÍTULO / CAPA (GDE & GDG LISBON) -->
+    <section class="slide active" data-notes="Bem-vindos a esta sessão Code-Along do GDG Lisbon! Vamos explorar de forma prática como estruturar, criar e manter projetos de software profissionais com IA e o Google Antigravity CLI (agy).">
+      <div class="hero-badges">
+        <span class="hero-badge"><span class="dot dot-blue"></span> GDG Lisbon</span>
+        <span class="hero-badge"><span class="dot dot-red"></span> Google Developer Experts (GDE)</span>
+        <span class="hero-badge"><span class="dot dot-yellow"></span> Sessão Code-Along</span>
+        <span class="hero-badge"><span class="dot dot-green"></span> Google Antigravity CLI</span>
+      </div>
+
+      <h1 style="margin-top: 8px;">
+        Desenvolvimento AI-First com<br/>
+        <span class="accent-blue">Antigravity CLI (<code>agy</code>)</span>
+      </h1>
+
+      <p style="font-size: 1.22rem; color: var(--text-muted); max-width: 920px; margin-bottom: 26px;">
+        Melhores Práticas de Engenharia de Contexto, Estrutura de Diretorias, <strong>Rules</strong>, <strong>Skills</strong>, <strong>Hooks</strong>, <strong>Servidores MCP</strong> e <strong>Plugins</strong> para criar e escalar projetos em equipa.
+      </p>
+
+      <div class="grid-3">
+        <div class="card g-blue-top">
+          <h3>1. O Terminal Agêntico</h3>
+          <p style="font-size: 0.92rem;">Dominar o <code>agy</code>, modos de operação (<code>plan</code>, <code>auto</code>), níveis de <em>effort</em> e comandos <code>/slash</code>.</p>
+        </div>
+        <div class="card g-yellow-top">
+          <h3>2. Arquitetura AI-Ready</h3>
+          <p style="font-size: 0.92rem;">Como estruturar <code>.agents/</code>, <code>AGENTS.md</code>, <code>SKILL.md</code>, <code>hooks.json</code>, <code>mcp_config.json</code> e <code>plugin.json</code>.</p>
+        </div>
+        <div class="card g-green-top">
+          <h3>3. Code-Along Prático</h3>
+          <p style="font-size: 0.92rem;">Exploração de 4 projetos de exemplo reais em <code>examples/</code>, incluindo uma app Full-Stack Node.js + React.</p>
+        </div>
+      </div>
+
+      <div class="speaker-banner">
+        <div style="display: flex; align-items: center; gap: 16px;">
+          <div class="speaker-avatar">NJA</div>
+          <div>
+            <div style="font-size: 1.08rem; font-weight: 800; color: var(--text-main);">Nuno João Andrade</div>
+            <div style="font-size: 0.9rem; color: var(--text-muted);">
+              <strong>Google Developer Expert (GDE)</strong> em Cloud &amp; Modern Infrastructure &bull; Organizer @ <strong>GDG Lisbon</strong>
+            </div>
+          </div>
+        </div>
+        <div style="text-align: right;">
+          <span class="pill pill-blue" style="font-size: 0.85rem; padding: 6px 14px;">https://nja.dev</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 2: APRESENTAÇÃO PESSOAL (NUNO JOÃO ANDRADE) & GDG LISBON -->
+    <section class="slide" data-notes="Apresentação rápida: Sou o Nuno João Andrade (nja.dev), Google Developer Expert em Google Cloud e organizador aqui no GDG Lisbon. Explicar também a missão do GDG Lisbon e convidar toda a gente a participar nos próximos eventos e no DevFest Lisbon.">
+      <span class="slide-tag">Boas-Vindas &amp; Comunidade</span>
+      <h2>Sobre Mim &amp; Sobre o GDG Lisbon</h2>
+      <p>Partilhar conhecimento prático, aberto e próximo da comunidade de engenharia em Portugal.</p>
+
+      <div class="grid-2" style="margin-top: 10px;">
+        <!-- Card 1: Nuno João Andrade -->
+        <div class="card g-blue-top" style="box-shadow: 0 4px 14px rgba(32,33,36,0.05);">
+          <div class="profile-header">
+            <div class="speaker-avatar">NJA</div>
+            <div>
+              <h3 style="margin-bottom: 2px; font-size: 1.2rem; color: var(--text-main);">Nuno João Andrade</h3>
+              <span class="pill pill-blue">Google Developer Expert (GDE)</span>
+              <span class="pill pill-green">nja.dev</span>
+            </div>
+          </div>
+          <ul>
+            <li><strong>Google Developer Expert (GDE):</strong> Especialista reconhecido pela Google em <em>Google Cloud</em>, <em>Modern &amp; Enterprise Infrastructure</em> e arquiteturas de IA.</li>
+            <li><strong>Percurso Profissional:</strong> <em>Senior Backend Developer &amp; Cloud Architect</em> com mais de uma década de experiência internacional em sistemas distribuídos de elevado tráfego, migrações complexas e otimização de performance.</li>
+            <li><strong>Engenharia AI-First:</strong> Explorador ativo de agentes de engenharia (<strong>Antigravity CLI</strong>, <strong>Google ADK</strong>, <strong>Gemini</strong>, <strong>Gemma</strong>) e ferramentas de produtividade para equipas de desenvolvimento.</li>
+            <li><strong>Comunidade &amp; Blog:</strong> Artigos, arquiteturas e notas técnicas em <code>https://nja.dev</code>.</li>
+          </ul>
+        </div>
+
+        <!-- Card 2: GDG Lisbon -->
+        <div class="card g-green-top" style="box-shadow: 0 4px 14px rgba(32,33,36,0.05);">
+          <div class="profile-header">
+            <div class="speaker-avatar" style="background: linear-gradient(135deg, var(--g-red), var(--g-yellow));">&lt;/&gt;</div>
+            <div>
+              <h3 style="margin-bottom: 2px; font-size: 1.2rem; color: var(--text-main);">GDG Lisbon</h3>
+              <span class="pill pill-red">Google Developer Group</span>
+              <span class="pill pill-amber">Lisboa, Portugal</span>
+            </div>
+          </div>
+          <ul>
+            <li><strong>Comunidade Oficial:</strong> Grupo local independente de programadores apoiado pelo programa <strong>Google for Developers</strong> em Lisboa.</li>
+            <li><strong>A Nossa Missão:</strong> Ligar programadores, arquitetos, estudantes e entusiastas através de partilha aberta sobre <strong>Cloud, Inteligência Artificial, Web, Mobile (Android/Flutter) e Infraestrutura</strong>.</li>
+            <li><strong>O Que Fazemos:</strong> Meetups mensais, sessões práticas de <em>Code-Along</em>, <em>Study Jams</em>, workshops técnicos e a conferência anual <strong>DevFest Lisbon</strong>.</li>
+            <li><strong>Participe Ativamente:</strong> Tem um tema ou projeto interessante? O nosso <em>Call for Papers (CFP)</em> está aberto — fale connosco para ser orador ou voluntário!</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="callout" style="margin-top: 18px;">
+        <strong>Estrutura deste Repositório Code-Along:</strong> Slides em <strong>Português de Portugal (pt-PT)</strong> &bull; Os 4 projetos de exemplo em <code>examples/</code> estão em <strong>Inglês (EN)</strong> (a língua recomendada para instruções técnicas <code>AGENTS.md</code> e <code>SKILL.md</code>).
+      </div>
+    </section>
+
+    <!-- SLIDE 3: INSTALAÇÃO DO ANTIGRAVITY CLI (AGY) -->
+    <section class="slide" data-notes="Garantir que todos os participantes têm o Antigravity CLI (agy) instalado e autenticado no seu terminal antes de começarmos os exercícios práticos.">
+      <span class="slide-tag">Setup 1/2 &bull; Ferramenta Principal</span>
+      <h2>Instalar o Google Antigravity CLI (<code>agy</code>)</h2>
+      <p>O <strong>Antigravity CLI (<code>agy</code>)</strong> instala-se num único comando e coloca o binário em <code>~/.local/bin/agy</code>:</p>
+
+      <div class="grid-2">
+        <div class="card g-blue-top">
+          <h3>1. Instalar por Sistema Operativo</h3>
+          <pre style="margin-bottom: 8px;"><code># Linux, macOS ou WSL:
+curl -fsSL \
+  https://antigravity.google/cli/install.sh | bash
+export PATH="$HOME/.local/bin:$PATH"
+
+# Windows (PowerShell):
+irm https://antigravity.google/cli/install.ps1 | iex</code></pre>
+          <p style="font-size: 0.88rem; margin-bottom: 0;">Recarregue o terminal (<code>source ~/.bashrc</code> ou <code>~/.zshrc</code>) para atualizar o <code>PATH</code>.</p>
+        </div>
+
+        <div class="card g-green-top">
+          <h3>2. Autenticar com API Key (Script Automático)</h3>
+          <pre style="margin-bottom: 8px;"><code># Instala o agy + pede a GEMINI_API_KEY:
+./scripts/install-antigravity.sh
+source ~/.bashrc &amp;&amp; agy</code></pre>
+          <ul style="margin-bottom: 0;">
+            <li style="font-size: 0.86rem; margin-bottom: 4px;">Define <code>"modelProvider": "gemini"</code> em <code>~/.gemini/antigravity-cli/settings.json</code>.</li>
+            <li style="font-size: 0.86rem; margin-bottom: 4px;">Guarda <code>export GEMINI_API_KEY="..."</code> no <code>~/.bashrc</code> / <code>~/.zshrc</code>.</li>
+            <li style="font-size: 0.86rem; margin-bottom: 0;">Guia oficial CLI: <a href="https://antigravity.google/docs/install/?tab=cli" target="_blank" rel="noopener" style="color: var(--g-blue-dark); font-weight: 600; text-decoration: none;"><code>https://antigravity.google/docs/install/?tab=cli</code></a></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="callout success">
+        <strong>Documentação Oficial:</strong> Consulte todas as flags e opções em <code>https://antigravity.google/docs/cli/reference</code> ou execute <code>agy --help</code>.
+      </div>
+    </section>
+
+    <!-- SLIDE 4: INSTALAÇÃO DE PYTHON 3 E NODE.JS VIA NVM -->
+    <section class="slide" data-notes="Passo 2 do setup para o nosso Code-Along: instalar o Python 3 (usado nos exemplos 01, 02 e 03) e o Node.js através do NVM (usado no exemplo 04 Full-Stack Node.js + React).">
+      <span class="slide-tag">Setup 2/2 &bull; Runtimes do Code-Along</span>
+      <h2>Instalar Python 3 &amp; Node.js (via NVM)</h2>
+      <p>Para correr os 5 exemplos (testes, hooks, servidor MCP e app Full-Stack Node.js + React), instale o <strong>Python 3</strong> e o <strong>NVM</strong>:</p>
+
+      <div class="grid-2">
+        <div class="card g-yellow-top">
+          <h3>🐍 1. Python 3 (Exemplos 00 a 03)</h3>
+          <pre style="margin-bottom: 8px;"><code># Ubuntu / Debian / WSL:
+sudo apt update &amp;&amp; sudo apt install -y \
+  python3 python3-venv python3-pip
+
+# macOS (Homebrew) / Windows (Winget):
+brew install python
+winget install Python.Python.3.12
+
+# Verificar versão (Python 3.11+):
+python3 --version</code></pre>
+        </div>
+
+        <div class="card g-green-top">
+          <h3>🟩 2. NVM &amp; Node.js (Exemplo 04)</h3>
+          <pre style="margin-bottom: 8px;"><code># 1. Instalar o NVM (Linux / macOS / WSL):
+curl -o- https://raw.githubusercontent.com/\
+nvm-sh/nvm/v0.40.1/install.sh | bash
+
+# 2. Carregar NVM e instalar Node.js LTS:
+source ~/.bashrc
+nvm install --lts &amp;&amp; nvm use --lts
+
+# 3. Verificar Node.js e npm:
+node -v &amp;&amp; npm -v</code></pre>
+        </div>
+      </div>
+
+      <div class="callout">
+        <strong>Pronto para o Code-Along!</strong> Com <code>agy --version</code>, <code>python3 --version</code> e <code>node -v</code> ativos, todos os 5 exemplos em <code>examples/</code> estão prontos a executar.
+      </div>
+    </section>
+
+    <!-- SLIDE 5: MUDANÇA DE PARADIGMA -->
+    <section class="slide" data-notes="Destacar que a maior diferença entre usar um chatbot e trabalhar com um agente de engenharia como o agy está na persistência do conhecimento no próprio repositório.">
+      <span class="slide-tag">1. Fundamentos</span>
+      <h2>De Autocompletar Código para Pair Programming Agêntico</h2>
+      <p>O sucesso com agentes de IA não depende de "prompts mágicos", mas sim de <strong>Engenharia de Contexto</strong> e de <strong>Guardrails Determinísticos</strong> versionados no Git.</p>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Dimensão</th>
+            <th>Uso Ad-Hoc de IA (Chat / Copilots)</th>
+            <th>Engenharia AI-First com Antigravity (<code>agy</code>)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Memória do Projeto</strong></td>
+            <td>Repetida manualmente pelo programador em cada conversa.</td>
+            <td>Codificada em <code>AGENTS.md</code>, ADRs (<code>docs/adr/</code>) e <code>Skills</code> no Git.</td>
+          </tr>
+          <tr>
+            <td><strong>Procedimentos Complexos</strong></td>
+            <td>O modelo tenta adivinhar passos de migração ou <em>deploy</em>.</td>
+            <td>Procedimentos passo a passo em <code>.agents/skills/&lt;nome&gt;/SKILL.md</code>.</td>
+          </tr>
+          <tr>
+            <td><strong>Qualidade e Segurança</strong></td>
+            <td>Revisão humana manual de erros de lint ou comandos arriscados.</td>
+            <td>Automatizada com <strong>Lifecycle Hooks</strong> (<code>PreToolUse</code> / <code>PostToolUse</code>).</td>
+          </tr>
+          <tr>
+            <td><strong>Acesso a Ferramentas</strong></td>
+            <td>Copiar e colar logs, esquemas SQL ou tickets para o chat.</td>
+            <td>Ligação direta e governada via <strong>Servidores MCP</strong> (<code>mcp_config.json</code>).</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="callout success">
+        <strong>Regra de Ouro:</strong> Se tiver de corrigir o agente duas vezes sobre a mesma convenção do projeto, essa regra deve ser gravada imediatamente num ficheiro <code>AGENTS.md</code>, numa <code>Skill</code> ou num <code>Hook</code> (usando <code>/learn</code>).
+      </div>
+    </section>
+
+    <!-- SLIDE 4: ANTIGRAVITY CLI -->
+    <section class="slide" data-notes="Mostrar os comandos mais importantes do binário agy no terminal Linux/macOS. Explicar a diferença entre modo interativo e modo print (-p) para automação.">
+      <span class="slide-tag">2. Antigravity CLI</span>
+      <h2>Dominar o Antigravity CLI (<code>agy</code>) no Terminal</h2>
+      <div class="grid-2">
+        <div>
+          <h3>Flags de Sessão e Raciocínio</h3>
+          <pre><code># Iniciar sessão interativa no diretório atual
+agy
+
+# Continuar a conversa mais recente ou por ID
+agy -c
+agy --conversation &lt;id&gt;
+
+# Definir modo de execução e esforço de raciocínio
+agy --mode plan --effort high
+
+# Adicionar diretorias extra ao workspace
+agy --add-dir ../shared-lib
+
+# Executar com sandbox de terminal ativo
+agy --sandbox</code></pre>
+        </div>
+        <div>
+          <h3>Execução Não-Interativa &amp; Subcomandos</h3>
+          <pre><code># Modo Print (-p): ideal para CI/CD e scripts
+agy -p "Check failing unit tests"
+
+# Saída estruturada em JSON com validação de Schema
+agy -p "Audit dependencies" \
+  --output-format json \
+  --json-schema ./schema.json
+
+# Subcomandos de Gestão do Ecossistema
+agy mcp list            # Gerir servidores MCP
+agy plugin list         # Gerir plugins instalados
+agy models              # Listar modelos disponíveis
+agy agents              # Listar agentes disponíveis</code></pre>
+        </div>
+      </div>
+
+      <div class="grid-3" style="margin-top: 8px;">
+        <div class="card g-blue-top">
+          <span class="pill pill-blue">--mode plan</span>
+          <p style="margin-top:6px; font-size:0.88rem;">Ideal para desenhar soluções complexas sem alterar ficheiros antes da aprovação.</p>
+        </div>
+        <div class="card g-green-top">
+          <span class="pill pill-green">--mode auto</span>
+          <p style="margin-top:6px; font-size:0.88rem;">Equilíbrio padrão: executa ações seguras e pede permissão em operações sensíveis.</p>
+        </div>
+        <div class="card g-yellow-top">
+          <span class="pill pill-amber">--mode accept-edits</span>
+          <p style="margin-top:6px; font-size:0.88rem;">Aceita edições de ficheiros automaticamente, mantendo controlo sobre comandos de sistema.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 5: SLASH COMMANDS -->
+    <section class="slide" data-notes="Os slash commands dentro do agy permitem ativar fluxos de trabalho especializados sem precisar de escrever prompts longos.">
+      <span class="slide-tag">2. Antigravity CLI</span>
+      <h2>Comandos Slash (<code>/</code>) para Orquestrar o Fluxo de Trabalho</h2>
+      <p>Dentro da interface interativa (TUI) do <code>agy</code>, os comandos <code>/</code> ativam comportamentos especializados:</p>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Comando</th>
+            <th>Objetivo</th>
+            <th>Momento Recomendado de Utilização</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>/grill-me</code></td>
+            <td>Entrevista Interativa de Requisitos</td>
+            <td><strong>Antes de desenhar ou programar.</strong> O agente faz perguntas para eliminar ambiguidades e alinhar decisões de arquitetura.</td>
+          </tr>
+          <tr>
+            <td><code>/plan</code></td>
+            <td>Planeamento Estruturado Passo a Passo</td>
+            <td>No início de funcionalidades multi-ficheiro ou refatorizações estruturais.</td>
+          </tr>
+          <tr>
+            <td><code>/boost</code></td>
+            <td>Pensamento Profundo &amp; Verificação Rigorosa</td>
+            <td>Problemas complexos de concorrência, arquitetura ou <em>bugs</em> difíceis de diagnosticar.</td>
+          </tr>
+          <tr>
+            <td><code>/goal</code></td>
+            <td>Execução Autónoma Persistente</td>
+            <td>Tarefas longas (ex: migrar cobertura de testes) em que o agente não deve parar até atingir a meta.</td>
+          </tr>
+          <tr>
+            <td><code>/teamwork</code></td>
+            <td>Equipa de Subagentes Autónomos</td>
+            <td>Projetos de grande dimensão que beneficiam de divisão de trabalho em paralelo.</td>
+          </tr>
+          <tr>
+            <td><code>/learn</code></td>
+            <td>Cristalização de Conhecimento</td>
+            <td><strong>Sempre que corrige o agente</strong> ou resolve uma configuração complexa que deve ficar persistida para o futuro.</td>
+          </tr>
+          <tr>
+            <td><code>/compact</code></td>
+            <td>Compactação da Janela de Contexto</td>
+            <td>Quando a conversa fica longa; resume o histórico preservando o estado essencial.</td>
+          </tr>
+          <tr>
+            <td><code>/schedule</code> &bull; <code>/browser</code></td>
+            <td>Agendamento Cron &bull; Automação Web</td>
+            <td>Para tarefas periódicas em segundo plano ou testes interativos no navegador.</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- SLIDE 6: ESTRUTURA DE DIRETORIAS -->
+    <section class="slide" data-notes="Esta é a árvore de ficheiros que qualquer projeto moderno assistido por IA deve ter. Reparem na separação entre AGENTS.md, docs/ e a diretoria .agents/.">
+      <span class="slide-tag">3. Estrutura de Projeto</span>
+      <h2>Estrutura de Diretorias e Ficheiros Recomendados</h2>
+      <div class="grid-2">
+        <pre style="font-size: 0.78rem; line-height: 1.4;"><code>my-ai-ready-project/
+├── AGENTS.md                 # Regras globais
+├── docs/                     # Docs de arquitetura
+│   ├── architecture.md       # Mapa do sistema
+│   ├── conventions.md        # Padrões e testes
+│   └── adr/                  # Decisões (ADRs)
+│       └── 0001-stack.md
+├── .agents/                  # Personalização (Git)
+│   ├── skills.json           # Registo de skills
+│   ├── plugins.json          # Registo de plugins
+│   ├── hooks.json            # Ciclo de vida
+│   ├── scripts/              # Scripts dos hooks
+│   ├── skills/               # Skills on-demand
+│   │   └── db-migration/
+│   │       ├── SKILL.md      # YAML + instruções
+│   │       ├── scripts/      # Validação
+│   │       ├── examples/     # Exemplos
+│   │       ├── resources/    # Templates
+│   │       └── references/   # Manuais detalhados
+│   └── plugins/              # Plugins da equipa
+└── apps/
+    ├── api/AGENTS.md         # Regras Backend
+    └── web/AGENTS.md         # Regras Frontend</code></pre>
+        <div>
+          <div class="card g-blue-top" style="margin-bottom: 12px;">
+            <h3>Porquê esta estrutura?</h3>
+            <ul>
+              <li><strong>Partilha via Git (VCS):</strong> A pasta <code>.agents/</code> (ou <code>.agent/</code>) na raiz do projeto garante que toda a equipa partilha as mesmas Skills, Hooks e Plugins assim que faz <code>git clone</code>.</li>
+              <li><strong>Hierarquia Contextual:</strong> O agente percorre o caminho desde o ficheiro que está a editar até à raiz do repositório, combinando o <code>AGENTS.md</code> local com o da raiz.</li>
+              <li><strong>Documentação Viva (<code>docs/</code>):</strong> Manter ADRs e <code>architecture.md</code> atualizados evita que o agente proponha padrões incompatíveis com decisões passadas.</li>
+            </ul>
+          </div>
+          <div class="callout">
+            <strong>Global vs. Projeto:</strong> Configurações pessoais da sua máquina ficam em <code>~/.gemini/config/</code> (e as opções da CLI em <code>~/.gemini/antigravity-cli/settings.json</code>). Tudo o que é da equipa fica em <code>.agents/</code>.
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 7: OS 5 PILARES -->
+    <section class="slide" data-notes="Comparar claramente quando escolher uma Rule, uma Skill, um Hook, um servidor MCP ou um Plugin.">
+      <span class="slide-tag">4. Sistema de Personalização</span>
+      <h2>Os 5 Pilares de Personalização do Antigravity</h2>
+      <p>Escolha o mecanismo certo consoante o problema que pretende resolver:</p>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Tipo</th>
+            <th>Ficheiro / Diretoria</th>
+            <th>Âmbito de Ativação</th>
+            <th>Quando Utilizar</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="pill pill-blue">Rules</span></td>
+            <td><code>AGENTS.md</code> ou <code>GEMINI.md</code></td>
+            <td>Contextual e Hierárquico (sempre ativo no diretório)</td>
+            <td>Impor estilo de código, restrições de arquitetura, comandos de teste e proibições permanentes.</td>
+          </tr>
+          <tr>
+            <td><span class="pill pill-green">Skills</span></td>
+            <td><code>.agents/skills/&lt;nome&gt;/SKILL.md</code></td>
+            <td><em>On-Demand</em> (Divulgação Progressiva)</td>
+            <td>Ensinar fluxos de trabalho passo a passo, <em>runbooks</em>, criação de migrações ou novos módulos.</td>
+          </tr>
+          <tr>
+            <td><span class="pill pill-amber">Hooks</span></td>
+            <td><code>.agents/hooks.json</code></td>
+            <td>Evento do Ciclo de Vida (Síncrono)</td>
+            <td>Executar validações determinísticas: bloquear comandos destrutivos, correr linters ou forçar testes antes de parar.</td>
+          </tr>
+          <tr>
+            <td><span class="pill pill-red">MCP Servers</span></td>
+            <td><code>mcp_config.json</code></td>
+            <td>Integração de Ferramentas</td>
+            <td>Ligar o agente a sistemas externos (PostgreSQL, SQLite, GitHub, Jira, Grafana, APIs internas).</td>
+          </tr>
+          <tr>
+            <td><span class="pill pill-purple">Plugins</span></td>
+            <td><code>.agents/plugins/&lt;nome&gt;/plugin.json</code></td>
+            <td>Pacote Unificado (<em>Bundle</em>)</td>
+            <td>Agrupar Skills, Rules, Hooks e MCP numa unidade partilhável que pode ser ligada/desligada de uma só vez.</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="callout">
+        <strong>Ordem de Prioridade de Descoberta (da mais alta para a mais baixa):</strong><br/>
+        1. <strong>Workspace (<code>.agents/</code>)</strong> &rarr; 2. <strong>Configs Declaradas (<code>skills.json</code> / <code>plugins.json</code>)</strong> &rarr; 3. <strong>Global (<code>~/.gemini/config/</code>)</strong> &rarr; 4. <strong>Built-in</strong> &rarr; 5. <strong>Configs Globais Declaradas</strong>.
+      </div>
+    </section>
+
+    <!-- SLIDE 8: DIVULGAÇÃO PROGRESSIVA E ORÇAMENTO -->
+    <section class="slide" data-notes="Explicar o conceito de Progressive Disclosure (Divulgação Progressiva) e os limites exatos de tokens/bytes do Antigravity.">
+      <span class="slide-tag">5. Gestão de Contexto</span>
+      <h2>Orçamento de Contexto e Divulgação Progressiva</h2>
+      <p>Encher a janela de contexto com milhares de linhas de instruções degrada a atenção do modelo. O Antigravity resolve isto com <strong>Divulgação Progressiva (<em>Progressive Disclosure</em>)</strong>:</p>
+
+      <div class="grid-2">
+        <div class="card g-blue-top">
+          <h3>Regras (<code>AGENTS.md</code> / <code>GEMINI.md</code>)</h3>
+          <ul>
+            <li><strong>Sempre Ativas no seu diretório:</strong> São carregadas automaticamente quando o agente trabalha nesse diretório.</li>
+            <li><strong>Limite por Ficheiro:</strong> <code>24 KB</code> (24.000 bytes, após expandir inclusões <code>@[label](path)</code>).</li>
+            <li><strong>Orçamento Agregado de Regras:</strong> <code>20.000 tokens</code> dedicados.</li>
+            <li><strong>Degradação Graciosa:</strong> Se exceder o orçamento, as regras excedentes passam de texto inline para ponteiros de ficheiro lidos sob pedido.</li>
+            <li><strong>Deduplicação:</strong> Cada ficheiro de regra é injetado no máximo uma vez por conversa.</li>
+          </ul>
+        </div>
+        <div class="card g-green-top">
+          <h3>Skills (<code>SKILL.md</code>) — Poupança de Tokens</h3>
+          <ul>
+            <li><strong>Passo 1 (Injeção Leve):</strong> No início da conversa, <strong>apenas o <code>name</code> e a <code>description</code></strong> de cada Skill são incluídos no prompt do sistema.</li>
+            <li><strong>Passo 2 (Ativação Sob Pedido):</strong> O corpo de <code>SKILL.md</code> só é lido quando a tarefa do utilizador corresponde à descrição da Skill.</li>
+            <li><strong>Passo 3 (Referências Profundas):</strong> Ficheiros pesados em <code>references/</code> ou <code>examples/</code> só são lidos pelo agente se o passo específico os exigir.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="callout warn">
+        <strong>Anti-Padrão Comum:</strong> Colocar manuais de 50 páginas dentro do <code>AGENTS.md</code> da raiz. Mantenha o <code>AGENTS.md</code> enxuto (&lt; 150 linhas) e mova procedimentos específicos para <code>.agents/skills/</code>!
+      </div>
+    </section>
+
+    <!-- SLIDE 9: RULES (AGENTS.MD) -->
+    <section class="slide" data-notes="Mostrar o que deve e não deve constar num ficheiro AGENTS.md na raiz e nas subdiretorias.">
+      <span class="slide-tag">6. Deep Dive: Rules</span>
+      <h2>Como Escrever Ficheiros <code>AGENTS.md</code> Eficazes</h2>
+      <div class="grid-2">
+        <div>
+          <h3>Exemplo: <code>AGENTS.md</code> na Raiz</h3>
+          <pre style="font-size: 0.78rem; line-height: 1.42;"><code># Workspace Engineering Rules
+
+## Build, Lint &amp; Test Commands
+- Install: `pnpm install`
+- Unit test (1 file): `pnpm vitest run &lt;path&gt;`
+- Typecheck: `pnpm -r typecheck`
+- Lint &amp; Format: `pnpm check`
+
+## Architecture &amp; Boundaries
+- `packages/shared`: pure domain types &amp; Zod.
+- `apps/web` never imports from `apps/api`.
+- DB changes require the `db-migration` skill.
+
+## Coding Conventions
+- Use explicit return types on exports.
+- Never commit secrets or `.env` files.</code></pre>
+        </div>
+        <div>
+          <h3>Exemplo: <code>apps/api/AGENTS.md</code> (Contextual)</h3>
+          <pre style="font-size: 0.78rem; line-height: 1.42;"><code># Backend API Rules (Python / FastAPI)
+
+## Local Commands
+- Single test: `pytest tests/unit/&lt;file&gt; -q`
+- Lint: `ruff check src/ &amp;&amp; ruff format --check`
+
+## API Guidelines
+- Endpoints must use Pydantic v2 models.
+- Use `Depends` for database sessions.
+- Raise domain errors from `src.core.errors`,
+  never raw HTTP 500.</code></pre>
+          <div class="card g-blue-top" style="margin-top: 10px;">
+            <h3>Checklist de Qualidade para Rules</h3>
+            <ul>
+              <li>Dê sempre o comando para correr <strong>um único ficheiro de teste</strong> (feedback rápido).</li>
+              <li>Não use YAML frontmatter em ficheiros <code>AGENTS.md</code> / <code>GEMINI.md</code> autónomos.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 10: SKILLS -->
+    <section class="slide" data-notes="Explicar em detalhe o que são as Skills, a estrutura da pasta e a importância do campo description no YAML frontmatter.">
+      <span class="slide-tag">6. Deep Dive: Skills</span>
+      <h2>O que são as Skills (<code>SKILL.md</code>)?</h2>
+      <p style="margin-bottom: 10px;">As <strong>Skills</strong> são pacotes modulares que ensinam ao agente <strong>como executar um fluxo de trabalho específico da sua equipa</strong> com precisão e validação determinística.</p>
+
+      <div class="grid-2">
+        <div>
+          <h3>Anatomia de uma Skill</h3>
+          <pre style="font-size: 0.78rem; line-height: 1.4; padding: 11px 14px; margin-bottom: 10px;"><code>.agents/skills/db-migration/
+├── SKILL.md              # Obrigatório (YAML + Passos)
+├── scripts/              # Opcional: Executáveis
+│   └── validate-sql.sh
+├── examples/             # Opcional: Exemplos
+│   └── 001_users.sql
+├── resources/            # Opcional: Templates
+│   └── header.sql
+└── references/           # Opcional: Docs extensos
+    └── zero-downtime.md</code></pre>
+          <div class="card g-green-top" style="padding: 12px 16px;">
+            <h3 style="margin-bottom: 6px;">Boas Práticas para Skills</h3>
+            <ul style="margin-bottom: 0;">
+              <li style="margin-bottom: 4px;"><strong>Descrição na 3.ª pessoa:</strong> Especifique <em>o que faz</em> e <em>quando deve ser ativada</em>.</li>
+              <li style="margin-bottom: 4px;"><strong>Scripts Executáveis:</strong> Encapsule comandos bash complexos em <code>scripts/</code>.</li>
+              <li style="margin-bottom: 0;"><strong>Passos de Validação:</strong> Termine sempre com um comando que comprove o sucesso.</li>
+            </ul>
+          </div>
+        </div>
+        <div>
+          <h3>Exemplo de <code>SKILL.md</code></h3>
+          <pre style="font-size: 0.78rem; line-height: 1.4; padding: 11px 14px; margin-bottom: 0;"><code>---
+name: db-migration
+description: &gt;-
+  Creates and validates zero-downtime SQL migrations.
+  Use when the user asks to create, alter, or review
+  database tables, columns, or indexes.
+---
+
+# Database Migration Skill
+
+Follow these steps when creating a migration:
+
+## 1. Preparation
+1. Review [001_users.sql](./examples/001_users.sql).
+2. If altering a table, read
+   [zero-downtime.md](./references/zero-downtime.md).
+
+## 2. Execution &amp; Verification
+1. Create SQL file in `apps/api/migrations/`.
+2. Run validation script to check for table locks:
+   `./.agents/skills/db-migration/scripts/validate-sql.sh`</code></pre>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 11: MCP -->
+    <section class="slide" data-notes="Explicar o que é o Model Context Protocol (MCP), os dois transportes suportados (Stdio e Streamable HTTP) e como configurar o mcp_config.json.">
+      <span class="slide-tag">6. Deep Dive: MCP</span>
+      <h2>O que é um Servidor MCP (<code>mcp_config.json</code>)?</h2>
+      <p>O <strong>Model Context Protocol (MCP)</strong> é um protocolo aberto que permite ao agente interagir de forma segura e padronizada com bases de dados, APIs e ferramentas externas.</p>
+
+      <div class="grid-2">
+        <div>
+          <h3>Configuração (<code>mcp_config.json</code>)</h3>
+          <p style="font-size: 0.9rem;">Localização: Global em <code>~/.gemini/config/mcp_config.json</code> ou empacotado num Plugin em <code>plugins/&lt;nome&gt;/mcp_config.json</code>.</p>
+          <pre><code>{
+  "mcpServers": {
+    "local-sqlite-inspector": {
+      "command": "python3",
+      "args": [
+        "./tools/local-mcp-server/server.py",
+        "--db", "./data/dev.db"
+      ],
+      "env": {
+        "DB_READONLY": "true"
+      }
+    },
+    "company-observability": {
+      "url": "https://mcp.internal.company.com/mcp"
+    }
+  }
+}</code></pre>
+        </div>
+        <div>
+          <h3>Os 2 Transportes Suportados</h3>
+          <div class="card g-blue-top" style="margin-bottom: 12px;">
+            <h3>1. Stdio Transport (Local)</h3>
+            <p style="font-size: 0.9rem;">O Antigravity inicia o executável localmente (<code>command</code> + <code>args</code> + <code>env</code>) e comunica via <code>stdin</code> / <code>stdout</code>. Ideal para ferramentas CLI locais, SQLite, scripts Python/Node.</p>
+          </div>
+          <div class="card g-green-top">
+            <h3>2. Streamable HTTP Transport (Remoto)</h3>
+            <p style="font-size: 0.9rem;">Liga-se a um servidor remoto através do campo <code>url</code> (endpoint <code>/mcp</code>).<br/><em>Nota: O transporte legado HTTP+SSE não é suportado diretamente; utilize endpoints Streamable HTTP ou uma bridge stdio.</em></p>
+          </div>
+          <p style="font-size: 0.88rem; margin-top: 10px;">
+            <strong>Gestão rápida via CLI:</strong> <code>agy mcp list</code>, <code>agy mcp add</code>, <code>agy mcp enable/disable</code>.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 12: HOOKS -->
+    <section class="slide" data-notes="Os Hooks garantem que certas regras são cumpridas de forma 100% determinística, independentemente do modelo.">
+      <span class="slide-tag">6. Deep Dive: Hooks</span>
+      <h2>Lifecycle Hooks (<code>.agents/hooks.json</code>)</h2>
+      <p style="margin-bottom: 10px;">Os <strong>Hooks</strong> executam comandos shell síncronos em eventos do ciclo de vida do agente. Recebem um payload JSON em <code>stdin</code> (chaves em <em>camelCase</em>) e devolvem JSON em <code>stdout</code>.</p>
+
+      <div class="grid-2">
+        <div>
+          <table style="font-size: 0.85rem;">
+            <thead>
+              <tr>
+                <th>Evento</th>
+                <th>Quando Dispara</th>
+                <th>Ação Típica (<code>stdout</code>)</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>SessionStart</code></td>
+                <td>Início de sessão</td>
+                <td>Injetar contexto (<code>injectSteps</code>)</td>
+              </tr>
+              <tr>
+                <td><code>PreToolUse</code></td>
+                <td>Antes de correr ferramenta</td>
+                <td><code>decision</code>: <code>allow</code>, <code>deny</code>, <code>ask</code>, <code>force_ask</code></td>
+              </tr>
+              <tr>
+                <td><code>PostToolUse</code></td>
+                <td>Após ferramenta</td>
+                <td>Correr linter/formatter (devolve <code>{}</code>)</td>
+              </tr>
+              <tr>
+                <td><code>PreInvocation</code></td>
+                <td>Antes de invocar modelo</td>
+                <td>Injetar <code>ephemeralMessage</code></td>
+              </tr>
+              <tr>
+                <td><code>PostInvocation</code></td>
+                <td>Após ferramentas</td>
+                <td><code>terminationBehavior</code>: <code>force_continue</code></td>
+              </tr>
+              <tr>
+                <td><code>Stop</code></td>
+                <td>Quando vai terminar</td>
+                <td><code>decision: "continue"</code> se testes falharem</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div>
+          <h3>Exemplo: <code>.agents/hooks.json</code></h3>
+          <pre style="font-size: 0.78rem; line-height: 1.38; padding: 10px 14px; margin-bottom: 0;"><code>{
+  "command-safety-guard": {
+    "PreToolUse": [
+      {
+        "matcher": "run_command",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "./scripts/command-guard.sh",
+            "timeout": 5
+          }
+        ]
+      }
+    ]
+  },
+  "post-edit-linter": {
+    "PostToolUse": [
+      {
+        "matcher": "edit_file|write_file",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "./scripts/post-edit-check.sh",
+            "timeout": 15
+          }
+        ]
+      }
+    ]
+  }
+}</code></pre>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 13: PLUGINS & JSON CONFIGS -->
+    <section class="slide" data-notes="Explicar como empacotar tudo num Plugin para partilhar com a equipa e como funcionam o skills.json e plugins.json.">
+      <span class="slide-tag">6. Deep Dive: Plugins &amp; Partilha</span>
+      <h2>Plugins (<code>plugin.json</code>) &amp; Registo Declarativo (<code>skills.json</code>)</h2>
+      <div class="grid-2">
+        <div>
+          <h3>Estrutura de um Plugin</h3>
+          <pre style="font-size: 0.78rem; line-height: 1.38; padding: 10px 14px; margin-bottom: 8px;"><code>.agents/plugins/platform-engineering-kit/
+├── plugin.json          # Manifesto (JSONC)
+├── README.md            # Docs para humanos
+├── mcp_config.json      # Servidores MCP
+├── hooks.json           # Hooks do plugin
+├── assets/logo.svg      # Ícone (mín. 128x128)
+├── rules/AGENTS.md      # Regras do plugin
+└── skills/
+    └── incident-triage/SKILL.md</code></pre>
+          <pre style="font-size: 0.78rem; line-height: 1.38; padding: 10px 14px; margin-bottom: 0;"><code>// plugin.json
+{
+  "name": "platform-engineering-kit",
+  "displayName": "Platform Engineering Kit",
+  "version": "1.0.0",
+  "description": "Triage, gates &amp; DB MCP tools.",
+  "logo": "assets/logo.svg",
+  "suggestedPrompts": [
+    "Run incident triage on the API service",
+    "Verify release readiness before tagging"
+  ]
+}</code></pre>
+        </div>
+        <div>
+          <h3>Partilha Avançada: <code>.agents/skills.json</code></h3>
+          <p style="font-size: 0.9rem; margin-bottom: 8px;">Quando as Skills ou Plugins vivem em pastas partilhadas do monorepo ou diretórios da empresa, registe-os com <code>skills.json</code> e <code>plugins.json</code>:</p>
+          <pre style="font-size: 0.78rem; line-height: 1.38; padding: 10px 14px; margin-bottom: 10px;"><code>{
+  "inherits": [
+    {
+      "path": "/opt/company/shared-skills.json",
+      "include_only": ["security-baseline"],
+      "exclude": ["legacy-.*"]
+    }
+  ],
+  "entries": [
+    {
+      "path": "tools/shared-skills",
+      "exclude": ["experimental-.*"]
+    }
+  ]
+}</code></pre>
+          <div class="callout" style="padding: 10px 14px; margin: 0;">
+            <strong>Resolução de Caminhos:</strong> Caminhos começados por <code>/</code> são absolutos; <code>~/</code> são relativos ao <em>home</em> do utilizador; os restantes são relativos à raiz do repositório Git.
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 14: FLUXO DE TRABALHO (CRIAR E MANTER PROJETOS) -->
+    <section class="slide" data-notes="Resumo prático da metodologia para criar um projeto novo (Greenfield) e para manter um projeto existente (Brownfield) usando IA.">
+      <span class="slide-tag">7. Metodologia</span>
+      <h2>Como Criar e Manter Projetos com IA no Dia a Dia</h2>
+
+      <div class="grid-2">
+        <div class="card g-blue-top">
+          <h3>Criar um Projeto do Zero (Greenfield)</h3>
+          <ol>
+            <li><strong>Entrevista de Alinhamento (<code>/grill-me</code>):</strong> Clarifique requisitos funcionais, casos-limite e stack antes de gerar código.</li>
+            <li><strong>Arquitetura &amp; ADRs (<code>/plan</code>):</strong> Gere <code>docs/architecture.md</code> e o primeiro ADR em <code>docs/adr/0001-...md</code>.</li>
+            <li><strong>Fundação AI-First:</strong> Crie o <code>AGENTS.md</code> da raiz, configure o linter/test runner rápido e adicione hooks de segurança em <code>.agents/hooks.json</code>.</li>
+            <li><strong>Fatias Verticais Pequenas:</strong> Construa e teste uma funcionalidade de ponta a ponta de cada vez, fazendo commits frequentes.</li>
+          </ol>
+        </div>
+
+        <div class="card g-green-top">
+          <h3>Manter e Escalar Projetos (Brownfield)</h3>
+          <ol>
+            <li><strong>Subagentes de Pesquisa (<code>research</code>):</strong> Peça para investigar fluxos complexos num subagente de leitura sem poluir o contexto principal.</li>
+            <li><strong>Isolamento em Worktrees (<code>self</code>):</strong> Execute refatorizações paralelas em subagentes com <em>workspace</em> <code>branch</code> ou <code>share</code>.</li>
+            <li><strong>Melhoria Contínua (<code>/learn</code>):</strong> Sempre que corrigir um comportamento do agente, transforme a correção numa regra em <code>AGENTS.md</code> ou numa nova <code>Skill</code>.</li>
+            <li><strong>Higiene de Contexto (<code>/compact</code>):</strong> Compacte conversas longas ou inicie uma sessão limpa a cada nova funcionalidade.</li>
+          </ol>
+        </div>
+      </div>
+
+      <div class="callout success" style="margin-top: 16px;">
+        <strong>Dica de Produtividade:</strong> O agente é tão eficaz quanto o seu ciclo de feedback. Se o comando de teste demorar 0.5s e devolver erros claros, o agente corrige problemas autonomamente à primeira tentativa.
+      </div>
+    </section>
+
+    <!-- SLIDE 15: PROJETOS DE EXEMPLO (CODE-ALONG) -->
+    <section class="slide" data-notes="Apresentar as 5 diretorias de exemplo que criámos na pasta examples/ (00 a 04) e convidar a audiência a explorá-las no terminal.">
+      <span class="slide-tag">8. Code-Along &amp; Exemplos Práticos</span>
+      <h2>Explorar os 5 Projetos de Exemplo (em <code>examples/</code>)</h2>
+      <p>Criámos cinco estruturas de referência completas (em Inglês) na diretoria <code>examples/</code> para experimentar com o <code>agy</code>:</p>
+
+      <div class="grid-3">
+        <div class="card g-blue-top">
+          <span class="pill pill-purple">Exemplo 00 • Boilerplate</span>
+          <h3 style="margin-top: 6px; font-size: 1rem;"><code>00-project-boilerplate/</code></h3>
+          <ul style="font-size: 0.81rem; margin-bottom: 0;">
+            <li>Esqueleto pronto a copiar (<code>AGENTS.md</code>, <code>product-spec.md</code>, <code>architecture.md</code>, ADR)</li>
+            <li>Skill <code>init-project</code> que preenche os templates e cria <code>src/</code> + <code>tests/</code></li>
+          </ul>
+        </div>
+
+        <div class="card g-blue-top">
+          <span class="pill pill-blue">Exemplo 01</span>
+          <h3 style="margin-top: 6px; font-size: 1rem;"><code>01-starter-template/</code></h3>
+          <ul style="font-size: 0.81rem; margin-bottom: 0;">
+            <li>Projeto Greenfield em Python com <code>AGENTS.md</code> conciso e ADR 0001</li>
+            <li>Skill <code>project-bootstrap</code> + Hook <code>PreToolUse</code> de segurança</li>
+          </ul>
+        </div>
+
+        <div class="card g-green-top">
+          <span class="pill pill-green">Exemplo 02</span>
+          <h3 style="margin-top: 6px; font-size: 1rem;"><code>02-fullstack-monorepo/</code></h3>
+          <ul style="font-size: 0.81rem; margin-bottom: 0;">
+            <li>Regras hierárquicas: Raiz + <code>apps/api/AGENTS.md</code> + <code>apps/web/AGENTS.md</code></li>
+            <li>Skills <code>db-migration</code> e <code>api-endpoint-scaffold</code> + Hooks</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="grid-2" style="margin-top: 12px;">
+        <div class="card g-yellow-top">
+          <span class="pill pill-amber">Exemplo 03</span>
+          <h3 style="margin-top: 6px; font-size: 1rem;"><code>03-team-plugin-and-mcp/</code> — Plugins &amp; Servidor MCP</h3>
+          <ul style="font-size: 0.82rem; margin-bottom: 0;">
+            <li>Registo declarativo com <code>.agents/skills.json</code> e <code>.agents/plugins.json</code></li>
+            <li>Plugin <code>platform-engineering-kit</code> + Servidor MCP Stdio local (<code>tools/local-mcp-server/server.py</code>)</li>
+          </ul>
+        </div>
+
+        <div class="card g-red-top">
+          <span class="pill pill-red">Exemplo 04 • App Full-Stack</span>
+          <h3 style="margin-top: 6px; font-size: 1rem;"><code>04-restaurant-reservation/</code> — Node.js API + React</h3>
+          <ul style="font-size: 0.82rem; margin-bottom: 0;">
+            <li><strong>Backend API em Node.js (<code>:4000</code>)</strong> + <strong>Frontend em React 19 &amp; Vite (<code>:5173</code>)</strong></li>
+            <li>Skill <code>add-reservation-feature</code> + guia detalhado passo-a-passo para adicionar funcionalidades</li>
+          </ul>
+        </div>
+      </div>
+
+      <pre style="margin-top: 10px;"><code># Inicializar um projeto novo a partir do 00-project-boilerplate ou correr a app Full-Stack 04:
+cp -r examples/00-project-boilerplate /tmp/meu-projeto &amp;&amp; cd /tmp/meu-projeto &amp;&amp; agy</code></pre>
+    </section>
+
+    <!-- SLIDE 16: DEEP DIVE EXEMPLO 04 (RESTAURANT RESERVATION APP) -->
+    <section class="slide" data-notes="Mostrar em detalhe como funciona o Exemplo 04 (Reserva de Mesas de Restaurante em Node.js + React) e os 5 passos para adicionar novas funcionalidades com ou sem o agy.">
+      <span class="slide-tag">8. Code-Along: Deep Dive Exemplo 04</span>
+      <h2>App Full-Stack de Reserva de Mesas (<code>04-restaurant-reservation/</code>)</h2>
+      <p>Aplicação completa em <strong>Node.js</strong> (API REST zero-dependências) e <strong>React 19 + Vite</strong>, acompanhada de instruções detalhadas passo-a-passo para adicionar novas funcionalidades.</p>
+
+      <div class="grid-2">
+        <div>
+          <h3>Arquitetura em 4 Camadas</h3>
+          <table>
+            <thead>
+              <tr>
+                <th>Camada</th>
+                <th>Ficheiros &amp; Papel</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>1. Contrato</strong></td>
+                <td><code>packages/shared/contracts.json</code> — Define <code>timeSlots</code>, <code>zones</code>, <code>reservationStatuses</code> e esquemas.</td>
+              </tr>
+              <tr>
+                <td><strong>2. API Node.js</strong></td>
+                <td><code>apps/api/src/{validators,store,app}.js</code> — Previne <em>double-booking</em> (<code>409</code>) e excesso de lotação (<code>400</code>).</td>
+              </tr>
+              <tr>
+                <td><strong>3. Web React</strong></td>
+                <td><code>apps/web/src/{api.js,App.jsx}</code> — Mapa interativo de mesas (<code>T1</code>–<code>T6</code>), formulário e tabela de reservas.</td>
+              </tr>
+              <tr>
+                <td><strong>4. Guardrails IA</strong></td>
+                <td>Skill <code>add-reservation-feature</code> + <code>verify-fullstack.sh</code> + Hook <code>PostToolUse</code> (<code>node --check</code>).</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div>
+          <h3>Fluxo Passo-a-Passo para Adicionar Funcionalidades</h3>
+          <div class="card g-blue-top" style="margin-bottom: 10px;">
+            <ol style="font-size: 0.86rem; margin-bottom: 0;">
+              <li><strong>Contrato:</strong> Atualizar <code>packages/shared/contracts.json</code> (ex: campo <code>occasion</code> ou entidade <code>WaitlistEntry</code>).</li>
+              <li><strong>Backend:</strong> Validar em <code>validators.js</code>, persistir em <code>store.js</code> e expor rota em <code>app.js</code>.</li>
+              <li><strong>Testes:</strong> Adicionar testes de integração em <code>apps/api/tests/api.test.js</code> (<code>npm --prefix apps/api test</code>).</li>
+              <li><strong>Frontend React:</strong> Adicionar método em <code>src/api.js</code> e atualizar <code>src/App.jsx</code>.</li>
+              <li><strong>Verificação:</strong> Correr <code>./.agents/skills/add-reservation-feature/scripts/verify-fullstack.sh</code>.</li>
+            </ol>
+          </div>
+          <pre><code>cd examples/04-restaurant-reservation
+npm test      # Testes da API Node.js + Build React
+npm start     # Inicia API (:4000) + React (:5173)
+agy           # Pedir ao agente para criar a Waitlist!</code></pre>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <div id="notesPanel" class="notes-panel">
+    <span class="notes-label">Notas do Orador:</span>
+    <span id="notesContent"></span>
+  </div>
+
+  <div class="progress-track">
+    <div id="progressBar" class="progress-bar"></div>
+  </div>
+
+  <footer>
+    <div id="slideCounter">Slide 1 de 16</div>
+    <div class="nav-btns">
+      <button onclick="prevSlide()" title="Slide Anterior (←)">&#8592; Anterior</button>
+      <button onclick="toggleNotes()" title="Mostrar/Ocultar Notas do Orador (N)">Notas (N)</button>
+      <button onclick="toggleFullscreen()" title="Ecrã Inteiro (F)">Ecrã Inteiro (F)</button>
+      <button onclick="nextSlide()" title="Próximo Slide (→)">Seguinte &#8594;</button>
+    </div>
+  </footer>
+
+  <script>
+    const slides = Array.from(document.querySelectorAll('.slide'));
+    const counter = document.getElementById('slideCounter');
+    const progressBar = document.getElementById('progressBar');
+    const notesPanel = document.getElementById('notesPanel');
+    const notesContent = document.getElementById('notesContent');
+    const params = new URLSearchParams(window.location.search);
+    if (params.has('slide')) {
+      document.body.classList.add('no-anim');
+    }
+    const initialSlide = parseInt(params.get('slide') || window.location.hash.replace('#', ''), 10);
+    let current = (!isNaN(initialSlide) && initialSlide >= 1 && initialSlide <= slides.length)
+      ? initialSlide - 1
+      : 0;
+
+    function updateSlide() {
+      slides.forEach((s, idx) => {
+        s.classList.toggle('active', idx === current);
+      });
+      counter.textContent = `Slide ${current + 1} de ${slides.length}`;
+      progressBar.style.width = `${((current + 1) / slides.length) * 100}%`;
+      notesContent.textContent = slides[current].getAttribute('data-notes') || 'Sem notas para este slide.';
+    }
+
+    function nextSlide() {
+      if (current < slides.length - 1) {
+        current++;
+        updateSlide();
+      }
+    }
+
+    function prevSlide() {
+      if (current > 0) {
+        current--;
+        updateSlide();
+      }
+    }
+
+    function toggleNotes() {
+      notesPanel.classList.toggle('visible');
+    }
+
+    function toggleFullscreen() {
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().catch(() => {});
+      } else {
+        document.exitFullscreen().catch(() => {});
+      }
+    }
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') {
+        e.preventDefault();
+        nextSlide();
+      } else if (e.key === 'ArrowLeft' || e.key === 'PageUp') {
+        e.preventDefault();
+        prevSlide();
+      } else if (e.key === 'Home') {
+        e.preventDefault();
+        current = 0;
+        updateSlide();
+      } else if (e.key === 'End') {
+        e.preventDefault();
+        current = slides.length - 1;
+        updateSlide();
+      } else if (e.key.toLowerCase() === 'n') {
+        toggleNotes();
+      } else if (e.key.toLowerCase() === 'f') {
+        toggleFullscreen();
+      }
+    });
+
+    updateSlide();
+  </script>
+</body>
+</html>

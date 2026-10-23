@@ -1,0 +1,11 @@
+{
+  "sre-session-banner": {
+    "SessionStart": [
+      {
+        "type": "command",
+        "command": "printf '{\"injectSteps\":[{\"systemMessage\":{\"systemMessage\":\"Platform Engineering Kit plugin is active. Use incident-triage and release-readiness skills for operational workflows.\"}}]}\\n'",
+        "timeout": 5
+      }
+    ]
+  }
+}

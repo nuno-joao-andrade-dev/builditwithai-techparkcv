@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "SharedMonorepoContracts",
+  "definitions": {
+    "User": {
+      "type": "object",
+      "required": ["id", "email", "displayName"],
+      "properties": {
+        "id": { "type": "string" },
+        "email": { "type": "string", "format": "email" },
+        "displayName": { "type": "string" }
+      }
+    }
+  }
+}
